@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Serviço do MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: tray_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-tray}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-tray}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tray_network
+
+  # Serviço do PHP/Laravel
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: tray_api
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./api:/var/www
+    networks:
+      - tray_network
+    depends_on:
+      - mysql
+
+  # Serviço do Node.js/Vue.js
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: tray_front
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./front:/var/www
+    ports:
+      - "8080:8080"
+    networks:
+      - tray_network
+
+networks:
+  tray_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local 
