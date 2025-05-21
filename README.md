@@ -26,7 +26,7 @@ Este é um projeto full-stack que consiste em uma API Laravel e um frontend Vue.
 
 1. Clone o repositório:
 ```bash
-git clone [https://github.com/gustavonunes01/tray-teste]
+git clone https://github.com/gustavonunes01/tray-teste
 cd tray-teste
 ```
 
@@ -72,7 +72,11 @@ docker-compose exec api php artisan key:generate
 docker-compose exec api php artisan migrate --seed
 ```
 
-> **Nota**: O container da API já está configurado para executar automaticamente as migrações e seeders durante a inicialização. Isso garante que o banco de dados seja populado com os dados iniciais necessários para o funcionamento do sistema.
+> **Nota**: O container da API já está configurado para executar automaticamente:
+> - Composer dump-autoload (para indexar helpers e classes)
+> - Migrações do banco de dados
+> - Seeders para popular dados iniciais
+> - Supervisor para gerenciar workers de fila
 
 ## 🌐 Acessando a Aplicação
 
@@ -87,6 +91,8 @@ docker-compose exec api php artisan migrate --seed
 tray/
 ├── api/                 # Backend Laravel
 │   ├── app/
+│   │   ├── Helpers/    # Helpers personalizados
+│   │   └── ...
 │   ├── config/
 │   ├── database/
 │   │   ├── migrations/  # Estrutura do banco
@@ -117,6 +123,9 @@ docker-compose exec api php artisan route:list
 
 # Recriar banco de dados com seeders
 docker-compose exec api php artisan migrate:fresh --seed
+
+# Atualizar autoload do composer
+docker-compose exec api composer dump-autoload
 ```
 
 ### Frontend (Vue.js)
