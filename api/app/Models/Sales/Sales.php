@@ -5,10 +5,12 @@ namespace App\Models\Sales;
 use App\Models\Traits\UuidTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Sales extends Model
 {
-    use SoftDeletes, UuidTrait;
+    use SoftDeletes,
+        UuidTrait,
+        HasFactory;
 
     protected $table = 'sales';
     protected $fillable = [
@@ -27,8 +29,5 @@ class Sales extends Model
     public function seller(){
         return $this->belongsTo("App\\Models\\User", "seller_id");
     }
-
-
-
 
 }
