@@ -29,18 +29,25 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {useAuthStore} from "../../store/auth.ts";
+import { useUserStore } from '@/store/user.store.ts'
 
 const username = ref('')
 const password = ref('')
 const router = useRouter()
 const auth = useAuthStore()
+const userStore = useUserStore()
+const loading = ref(false)
 
 const handleLogin = async () => {
+  loading.value = true
   try {
     await auth.login(username.value, password.value)
+    await userStore.fetchCurrentUser()
     await router.push('/dashboard')
   } catch (error) {
     alert('Falha no login')
+  } finally {
+    loading.value = false
   }
 }
 </script>

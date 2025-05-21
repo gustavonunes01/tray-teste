@@ -25,10 +25,13 @@
               {{ formatDate(slotProps.data.created_at) }}
             </template>
           </Column>
-          <Column header="Ações" style="width: 8rem">
+          <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
               <Button icon="pi pi-pencil" text rounded @click="editSeller(slotProps.data)" class="mr-2" />
-              <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDeleteSeller(slotProps.data)" />
+              <Button icon="pi pi-send" text rounded @click="confirmNotifySeller(slotProps.data)" class="mr-2"
+                      v-tooltip.bottom="'Enviar notificação'"
+              />
+              <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDeleteSeller(slotProps.data)" class="mr-2" />
             </template>
           </Column>
         </DataTable>
@@ -54,14 +57,26 @@
     </Dialog>
 
     <!-- Dialog de Confirmação de Exclusão -->
-    <Dialog v-model:visible="deleteDialog" modal header="Confirmar Exclusão" :style="{ width: '30rem' }">
+    <Dialog v-model:visible="deleteSellerDialog" :style="{width: '450px'}" header="Confirmar" :modal="true">
       <div class="confirmation-content">
         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-        <span>Tem certeza que deseja excluir este vendedor?</span>
+        <span v-if="seller">Tem certeza que deseja excluir <b>{{seller.name}}</b>?</span>
       </div>
       <template #footer>
-        <Button label="Não" icon="pi pi-times" text @click="deleteDialog = false" />
-        <Button label="Sim" icon="pi pi-check" text severity="danger" @click="deleteSeller" :loading="deleting" />
+        <Button label="Não" icon="pi pi-times" text @click="deleteSellerDialog = false"/>
+        <Button label="Sim" icon="pi pi-check" text @click="deleteSeller" />
+      </template>
+    </Dialog>
+
+    <!-- Dialog de Notificação -->
+    <Dialog v-model:visible="notifySellerDialog" :style="{width: '450px'}" header="Confirmar Notificação" :modal="true">
+      <div class="confirmation-content">
+        <i class="pi pi-envelope mr-3" style="font-size: 2rem" />
+        <span v-if="seller">Deseja enviar uma notificação de vendas para <b>{{seller.name}}</b>?</span>
+      </div>
+      <template #footer>
+        <Button label="Não" icon="pi pi-times" text @click="notifySellerDialog = false"/>
+        <Button label="Sim" icon="pi pi-check" text @click="notifySeller" />
       </template>
     </Dialog>
   </AppLayout>
@@ -75,26 +90,34 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
+import Tooltip from 'primevue/tooltip'
 import RequestHelper from "@/common/request-helper"
 import { BackEndRoutes } from "@/config/back-end-routes"
 import { SellerService, type Seller, type SellersPagination } from '@/services/seller.service'
+import { useToast } from 'primevue/usetoast'
+import { formatDate } from '@/common/utils'
 
 const loading = ref(true)
 const saving = ref(false)
 const deleting = ref(false)
 const sellers = ref<Seller[]>([])
 const sellerDialog = ref(false)
-const deleteDialog = ref(false)
+const deleteSellerDialog = ref(false)
+const notifySellerDialog = ref(false)
 const seller = ref({
   id: null as number | null,
   name: '',
   email: ''
 })
 const selectedSeller = ref<Seller | null>(null)
+const submitted = ref(false)
 
 const dialogHeader = computed(() => {
   return seller.value.id ? 'Editar Vendedor' : 'Novo Vendedor'
 })
+
+// Registrar a diretiva do tooltip
+const vTooltip = Tooltip
 
 onMounted(async () => {
   await loadSellers()
@@ -122,6 +145,7 @@ const openNewSellerDialog = () => {
     name: '',
     email: ''
   }
+  submitted.value = false
   sellerDialog.value = true
 }
 
@@ -132,10 +156,17 @@ const editSeller = (data: Seller) => {
 
 const confirmDeleteSeller = (data: Seller) => {
   seller.value = { ...data }
-  deleteDialog.value = true
+  deleteSellerDialog.value = true
+}
+
+const hideDialog = () => {
+  sellerDialog.value = false
+  submitted.value = false
 }
 
 const saveSeller = async () => {
+  submitted.value = true
+
   if (!seller.value.name || !seller.value.email) {
     return
   }
@@ -174,11 +205,26 @@ const deleteSeller = async () => {
         `${BackEndRoutes.routes.seller.DELETE.replace(":id", seller.value.id)}`,
     )
     await loadSellers()
-    deleteDialog.value = false
+    deleteSellerDialog.value = false
   } catch (error) {
     console.error('Erro ao excluir vendedor:', error)
   } finally {
     deleting.value = false
+  }
+}
+
+const confirmNotifySeller = (data: Seller) => {
+  seller.value = { ...data }
+  notifySellerDialog.value = true
+}
+
+const notifySeller = async () => {
+  if (!seller.value?.id) return
+  try {
+    await SellerService.notifySeller(seller.value.id)
+    notifySellerDialog.value = false
+  } catch (error) {
+    console.error('Erro ao enviar notificação:', error)
   }
 }
 </script>

@@ -3,15 +3,20 @@
 namespace App\Services\Users;
 
 use App\Enums\ProfileTypesEnum;
+use App\Models\User;
 use App\Repositories\Users\UsersRepository;
+use App\Services\Sales\SaleService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
     protected UsersRepository $repository;
+    protected SaleService $saleService;
 
     public function __construct(){
         $this->repository = new UsersRepository();
+        $this->saleService = new SaleService();
     }
 
     public function listAllSellers(){
@@ -37,6 +42,34 @@ class UserService
 
     public function deleteSeller(int $id){
         return $this->repository->delete($id);
+    }
+
+    public function listByProfileId(int $profileId){
+        return $this->repository->allByProfileId($profileId);
+    }
+
+    public function getDailySalesSummary(Carbon $date): array
+    {
+        $sellers = $this->listByProfileId(ProfileTypesEnum::SELLER);
+        $sellersData = [];
+
+        foreach ($sellers as $seller) {
+            $sales = $this->saleService->getDailySales($seller->id, $date);
+
+            $sellersData[] = [
+                'seller' => $seller,
+                'sales' => $sales,
+                'totalSales' => $sales->count(),
+                'totalValue' => $sales->sum('price'),
+                'totalCommission' => $sales->sum('commission_value')
+            ];
+        }
+
+        return $sellersData;
+    }
+
+    public function find(int $id){
+        return $this->repository->find($id);
     }
 }
 

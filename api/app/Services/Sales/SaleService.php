@@ -2,10 +2,15 @@
 
 namespace App\Services\Sales;
 
+use App\Enums\ProfileTypesEnum;
 use App\Exceptions\BusinessException;
+use App\Mail\NotifySalesDaily;
 use App\Models\Sales\Sales;
 use App\Repositories\Sales\SalesRepository;
+use App\Services\Users\UserService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Mail;
 
 class SaleService
 {
@@ -61,5 +66,41 @@ class SaleService
         return [];
     }
 
+    public function getDailySales(int $sellerId, Carbon $date)
+    {
+        return $this->repository->getDailySales($sellerId, $date);
+    }
 
+    /**
+     * Função usada para notificar um especifico vendedor de suas vendas.
+     * @param string $sellerId
+     * @return bool
+     * @throws BusinessException
+     */
+    public function notifySeller(string $sellerId): bool
+    {
+        $authUser = auth()->user();
+
+        if(!empty($authUser) && $authUser->profile_id !== ProfileTypesEnum::ADMIN)
+            throw new BusinessException("Permissão insuficiente para continuar.");
+
+        $userService = new UserService();
+        $seller = $userService->find($sellerId);
+
+        if($seller){
+            $today = Carbon::today();
+            $date = $today->format('d/m/Y');
+            $sales = $this->getDailySales($sellerId, $today);
+
+            if(!empty($sales)){
+                // Envia notificação
+                Mail::to($seller->email)->queue(new NotifySalesDaily($seller, $sales, $date));
+                return true;
+            }
+
+            throw new BusinessException("Não houve nenhuma movimentação hoje.");
+        }
+
+        return false;
+    }
 }

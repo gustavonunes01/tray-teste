@@ -21,4 +21,8 @@ class UsersRepository extends AbstractRepository
         return $query;
     }
 
+    public function allByProfileId(string $profileId){
+        return $this->model->where('profile_id', $profileId)->get();
+    }
+
 }

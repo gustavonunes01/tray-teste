@@ -6,9 +6,13 @@ use App\Exceptions\BusinessException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaginateRequest;
 use App\Http\Requests\SalesRequest;
+use App\Mail\NotifySalesDaily;
 use App\Services\Sales\SaleService;
+use App\Services\Users\UserService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SalesController extends Controller
 {
@@ -63,6 +67,17 @@ class SalesController extends Controller
     public function mySales(): JsonResponse
     {
         return response()->json($this->service->mySales());
+    }
+
+    public function sendEmailNotification(int $seller_id): JsonResponse
+    {
+        try{
+            $this->service->notifySeller($seller_id);
+            return response()->json(["message" => "Notificação encaminhada para o vendedor com sucesso!"]);
+        }catch (\Exception $exception){
+            Log::error($exception);
+            return response()->json(["message" => "Não conseguimos processar sua solicitação."], 422);
+        }
     }
 
 }

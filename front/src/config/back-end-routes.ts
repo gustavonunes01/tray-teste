@@ -35,6 +35,7 @@ export const BackEndRoutes = {
             UPDATE: "/v1/sellers/:id",
             CREATE: "/v1/sellers",
             DELETE: "/v1/sellers/:id",
+            NOTIFY: (id: number) => `/v1/sellers/email/notify/${id}`,
         }
     }
 }

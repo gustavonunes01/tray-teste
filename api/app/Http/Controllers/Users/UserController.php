@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateSellerRequest;
 use App\Repositories\Users\UsersRepository;
 use App\Services\Users\UserService;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class UserController extends Controller
         $this->service = $service;
     }
 
-    public function createSeller(Request $request): JsonResponse
+    public function createSeller(CreateSellerRequest $request): JsonResponse
     {
         $data = $request->all();
         $user = $this->service->createSeller($data);

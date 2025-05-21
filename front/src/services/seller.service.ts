@@ -41,4 +41,18 @@ export class SellerService {
         );
         return response.data;
     }
+
+    static async deleteSeller(id: number): Promise<void> {
+        await RequestHelper.httpRequest(
+            "DELETE",
+            BackEndRoutes.routes.seller.DELETE(id)
+        );
+    }
+
+    static async notifySeller(id: number): Promise<void> {
+        await RequestHelper.httpRequest(
+            "GET",
+            BackEndRoutes.routes.seller.NOTIFY(id)
+        );
+    }
 } 

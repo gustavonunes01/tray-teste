@@ -4,6 +4,7 @@ namespace App\Repositories\Sales;
 
 use App\Models\Sales\Sales;
 use App\Repositories\AbstractRepository;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,6 +40,12 @@ class SalesRepository extends AbstractRepository
         return $this->model->where('seller_id', $seller_id)->get();
     }
 
-
-
+    public function getDailySales(int $sellerId, Carbon $date)
+    {
+        return $this->model
+            ->where('seller_id', $sellerId)
+            ->whereDate('created_at', $date)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
 }

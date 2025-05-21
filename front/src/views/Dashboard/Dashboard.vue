@@ -43,42 +43,17 @@
       </div>
     </div>
 
-    <!-- Dialog Nova Venda -->
-    <Dialog v-model:visible="saleDialog" modal header="Nova Venda" :style="{ width: '30rem' }">
-      <div class="grid">
-        <div class="col-12 mb-4">
-          <label for="name" class="font-semibold block mb-2">Nome do Pedido (opcional)</label>
-          <InputText id="name" v-model="sale.name" class="w-full" placeholder="Digite o nome do pedido" />
-        </div>
-        <div class="col-12 mb-4">
-          <label for="seller" class="font-semibold block mb-2">Vendedor</label>
-          <Dropdown
-            id="seller"
-            v-model="sale.seller_id"
-            :options="sellers"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Selecione um vendedor"
-            class="w-full"
-          />
-        </div>
-        <div class="col-12 mb-4">
-          <label for="price" class="font-semibold block mb-2">Valor</label>
-          <InputNumber
-            id="price"
-            v-model="sale.price"
-            mode="currency"
-            currency="BRL"
-            locale="pt-BR"
-            class="w-full"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancelar" icon="pi pi-times" text @click="saleDialog = false" />
-        <Button label="Salvar" icon="pi pi-check" @click="saveSale" :loading="saving" />
-      </template>
-    </Dialog>
+    <!-- Dialog Nova/Editar Venda -->
+    <SaleDialog
+      v-model="saleDialog"
+      :sellers="sellers"
+      :loading="saving"
+      :sale="selectedSale"
+      :is-view="isViewMode"
+      :is_my_sale="true"
+      @save="saveSale"
+      @cancel="closeDialog"
+    />
   </AppLayout>
 </template>
 
@@ -89,24 +64,21 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
-import Dropdown from 'primevue/dropdown'
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
 import RequestHelper from "@/common/request-helper"
 import { BackEndRoutes } from "@/config/back-end-routes"
 import type { MySalesResponse } from "@/types/my-sales-rest"
 import { SellerService, type Seller } from '@/services/seller.service'
+import SaleDialog from '@/components/sales/SaleDialog.vue'
+import { useUserStore } from '@/store/user.store.ts'
 
 const loading = ref(true)
 const saving = ref(false)
 const sales = ref<MySalesResponse>([])
 const saleDialog = ref(false)
 const sellers = ref<Seller[]>([])
-const sale = ref({
-  name: '',
-  price: 0,
-  seller_id: null as number | null
-})
+const selectedSale = ref<Sale | null>(null)
+const isViewMode = ref(false)
+const userStore = useUserStore()
 
 onMounted(async () => {
   await Promise.all([
@@ -150,30 +122,37 @@ function formatDate(isoString) {
   return date.toLocaleDateString('pt-BR')
 }
 
-const viewSale = (sale: any) => {
-  console.log('View sale:', sale)
-}
-
-const openNewSaleDialog = () => {
-  sale.value = {
-    name: '',
-    price: 0,
-    seller_id: null
-  }
+const viewSale = (sale: Sale) => {
+  selectedSale.value = sale
+  isViewMode.value = true
   saleDialog.value = true
 }
 
-const saveSale = async () => {
-  if (!sale.value.seller_id || !sale.value.price) {
+const openNewSaleDialog = () => {
+  selectedSale.value = null
+  isViewMode.value = false
+  saleDialog.value = true
+}
+
+const closeDialog = () => {
+  saleDialog.value = false
+  selectedSale.value = null
+  isViewMode.value = false
+}
+
+const saveSale = async (saleData: any) => {
+  if (!saleData.price) {
     return
   }
+
+  console.log(userStore.currentUser?.id)
 
   saving.value = true
   try {
     await RequestHelper.httpRequest(
       "POST",
       BackEndRoutes.routes.sales.CREATE,
-      sale.value
+      { ...saleData, seller_id: userStore.currentUser?.id }
     )
     await loadSales()
     saleDialog.value = false

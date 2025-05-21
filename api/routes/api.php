@@ -22,6 +22,7 @@ Route::middleware(['auth.jwt'])->group(function () {
 
         Route::prefix("sellers")->group(function (){
             Route::get("/my-sales", [SalesController::class, 'mySales']);
+            Route::get("/email/notify/{seller_id}", [SalesController::class, 'sendEmailNotification']);
             Route::get("/", [\App\Http\Controllers\Users\UserController::class, 'listSellers']);
             Route::post("/", [\App\Http\Controllers\Users\UserController::class, 'createSeller']);
             Route::put("/{id}", [\App\Http\Controllers\Users\UserController::class, 'updateSeller']);

@@ -18,6 +18,16 @@ services:
     networks:
       - tray_network
 
+  # Serviço Redis para filas
+  redis:
+    image: redis:alpine
+    container_name: tray_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - tray_network
+
   # Serviço do PHP/Laravel
   api:
     build:
@@ -32,6 +42,22 @@ services:
       - tray_network
     depends_on:
       - mysql
+      - redis
+
+  # Serviço Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: tray_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./api:/var/www
+      - ./api/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - tray_network
+    depends_on:
+      - api
 
   # Serviço do Node.js/Vue.js
   front:

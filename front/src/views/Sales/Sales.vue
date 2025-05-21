@@ -32,8 +32,10 @@
           currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} vendas"
           responsiveLayout="scroll"
           :totalRecords="sales.total"
-          :first="(sales.current_page - 1) * sales.per_page"
+          :first="sales.from - 1"
+          :lazy="true"
           @page="onPage($event)"
+          @rows-per-page-change="onRowsPerPageChange($event)"
         >
           <Column field="external_id" header="ID" sortable style="width: 4rem"></Column>
           <Column field="name" header="Pedido" sortable></Column>
@@ -60,43 +62,6 @@
         </DataTable>
       </div>
     </div>
-
-    <!-- Dialog Nova Venda -->
-    <Dialog v-model:visible="saleDialog" modal header="Nova Venda" :style="{ width: '30rem' }">
-      <div class="grid">
-        <div class="col-12 mb-4">
-          <label for="name" class="font-semibold block mb-2">Nome do Pedido (opcional)</label>
-          <InputText id="name" v-model="sale.name" class="w-full" placeholder="Digite o nome do pedido" />
-        </div>
-        <div class="col-12 mb-4">
-          <label for="seller" class="font-semibold block mb-2">Vendedor</label>
-          <Dropdown
-            id="seller"
-            v-model="sale.seller_id"
-            :options="sellers"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Selecione um vendedor"
-            class="w-full"
-          />
-        </div>
-        <div class="col-12 mb-4">
-          <label for="price" class="font-semibold block mb-2">Valor</label>
-          <InputNumber
-            id="price"
-            v-model="sale.price"
-            mode="currency"
-            currency="BRL"
-            locale="pt-BR"
-            class="w-full"
-          />
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancelar" icon="pi pi-times" text @click="saleDialog = false" />
-        <Button label="Salvar" icon="pi pi-check" @click="saveSale" :loading="saving" />
-      </template>
-    </Dialog>
 
     <!-- Dialog Visualizar Venda -->
     <Dialog v-model:visible="viewSaleDialog" modal header="Detalhes da Venda" :style="{ width: '30rem' }">
@@ -130,6 +95,16 @@
         <Button label="Fechar" icon="pi pi-times" @click="viewSaleDialog = false" />
       </template>
     </Dialog>
+
+    <!-- Dialog Nova/Editar Venda -->
+    <SaleDialog
+      v-model="saleDialog"
+      :sellers="sellers"
+      :loading="saving"
+      :sale="sale"
+      @save="saveSale"
+      @cancel="saleDialog = false"
+    />
   </AppLayout>
 </template>
 
@@ -141,13 +116,9 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import RequestHelper from "@/common/request-helper"
-import { BackEndRoutes } from "@/config/back-end-routes"
-import type { MySalesResponse } from "@/types/my-sales-rest"
 import { SellerService, type Seller } from '@/services/seller.service'
 import { SalesService, type Sale, type SalesPagination } from '@/services/sales.service'
+import SaleDialog from '@/components/sales/SaleDialog.vue'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -179,14 +150,14 @@ const sale = ref({
 
 onMounted(async () => {
   await Promise.all([
-    loadSales(),
+    loadSales(1, sales.value.per_page),
     loadSellers()
   ])
 })
 
-const loadSales = async (page: number = 1) => {
+const loadSales = async (page: number = 1, perPage: number = 10) => {
   try {
-    const response = await SalesService.getSales(page)
+    const response = await SalesService.getSales(page, perPage)
     sales.value = response
   } catch (error) {
     console.error('Erro ao carregar vendas:', error)
@@ -236,15 +207,15 @@ const openNewSaleDialog = () => {
   saleDialog.value = true
 }
 
-const saveSale = async () => {
-  if (!sale.value.seller_id || !sale.value.price) {
+const saveSale = async (saleData: Partial<Sale>) => {
+  if (!saleData.seller_id || !saleData.price) {
     return
   }
 
   saving.value = true
   try {
-    await SalesService.createSale(sale.value)
-    await loadSales(sales.value.current_page)
+    await SalesService.createSale(saleData)
+    await loadSales(sales.value.current_page, sales.value.per_page)
     saleDialog.value = false
   } catch (error) {
     console.error('Erro ao salvar venda:', error)
@@ -253,9 +224,30 @@ const saveSale = async () => {
   }
 }
 
-const onPage = (event: any) => {
-  const page = event.page + 1
-  loadSales(page)
+const onPage = async (event: any) => {
+  loading.value = true
+  try {
+    const page = event.page + 1
+    const perPage = event.rows
+    const response = await SalesService.getSales(page, perPage)
+    sales.value = response
+  } catch (error) {
+    console.error('Erro ao carregar vendas:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const onRowsPerPageChange = async (event: any) => {
+  loading.value = true
+  try {
+    const response = await SalesService.getSales(1, event.rows)
+    sales.value = response
+  } catch (error) {
+    console.error('Erro ao carregar vendas:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 const onSellerFilterChange = async () => {

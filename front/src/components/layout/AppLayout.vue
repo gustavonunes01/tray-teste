@@ -30,6 +30,7 @@
           <i class="pi pi-bars"></i>
         </button>
         <div class="topbar-right">
+          <p>{{userStore.currentUser?.name}}</p>
           <Button icon="pi pi-sign-out" @click="logout" text severity="danger" />
         </div>
       </header>
@@ -43,33 +44,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { useUserStore } from '@/store/user.store.ts'
 import Menu from 'primevue/menu'
 import Button from 'primevue/button'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const sidebarActive = ref(true)
 
-const menuItems = [
-  {
-    label: 'Dashboard',
-    icon: 'pi pi-home',
-    route: '/dashboard'
-  },
-  {
-    label: 'Vendas',
-    icon: 'pi pi-shopping-cart',
-    route: '/vendas'
-  },
-  {
-    label: 'Vendedores',
-    icon: 'pi pi-users',
-    route: '/sellers'
+const menuItems = computed(() => {
+  const items = [
+    {
+      label: 'Dashboard',
+      icon: 'pi pi-home',
+      route: '/dashboard'
+    }
+  ]
+
+  // Se for admin (profile_id === 1), adiciona os outros itens
+  if (userStore.currentUser?.profile_id === 1) {
+    items.push(
+      {
+        label: 'Vendas',
+        icon: 'pi pi-shopping-cart',
+        route: '/vendas'
+      },
+      {
+        label: 'Vendedores',
+        icon: 'pi pi-users',
+        route: '/sellers'
+      }
+    )
   }
-]
+
+  return items
+})
 
 const toggleSidebar = () => {
   sidebarActive.value = !sidebarActive.value
@@ -79,6 +92,12 @@ const logout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+onMounted(async () => {
+  if (!userStore.currentUser) {
+    await userStore.fetchCurrentUser()
+  }
+})
 </script>
 
 <style scoped>
