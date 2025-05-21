@@ -15,7 +15,6 @@ Este é um projeto full-stack que consiste em uma API Laravel e um frontend Vue.
 - Vue 3
 - PrimeVue
 - TailwindCSS
-- DataTables.js
 
 ## 📋 Pré-requisitos
 
