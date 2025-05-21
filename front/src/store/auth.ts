@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import {BackEndRoutes} from "../config/back-end-routes.ts";
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -11,8 +12,9 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         async login(username: string, password: string) {
             // Substitua pela URL da sua API
-            const res = await axios.post('https://sua-api.com/login', { username, password })
-            this.token = res.data.token
+            const url = BackEndRoutes.getHost() + BackEndRoutes.routes.auth.LOGIN;
+            const res = await axios.post(url, { email:username, password })
+            this.token = res.data.access_token
             localStorage.setItem('token', this.token)
         },
         logout() {

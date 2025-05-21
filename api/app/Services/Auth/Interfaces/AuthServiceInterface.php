@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Interfaces;
+namespace App\Services\Auth\Interfaces;
 
 interface AuthServiceInterface
 {
@@ -8,4 +8,4 @@ interface AuthServiceInterface
     public function logout();
     public function refresh();
     public function me();
-} 
+}

@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\EnsureJwtAuthenticated::class
     ];
 
     /**
@@ -43,6 +44,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\JsonMiddleware::class,
+            \App\Http\Middleware\EnsureJwtAuthenticated::class
         ],
     ];
 
@@ -67,4 +69,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'json' => \App\Http\Middleware\JsonMiddleware::class,
     ];
-} 
+
+    protected $routeMiddleware = [
+        'auth.jwt' => \App\Http\Middleware\EnsureJwtAuthenticated::class,
+    ];
+}

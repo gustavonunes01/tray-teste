@@ -1,0 +1,17 @@
+/* PrimeVue Lara Light Blue Theme */
+:root {
+    --primary-color: #3B82F6;
+    --primary-color-text: #ffffff;
+    --surface-ground: #f8f9fa;
+    --surface-section: #ffffff;
+    --surface-card: #ffffff;
+    --surface-overlay: #ffffff;
+    --surface-border: #dee2e6;
+    --surface-hover: #f8f9fa;
+    --text-color: #495057;
+    --text-color-secondary: #6c757d;
+    --focus-ring: 0 0 0 0.2rem rgba(59, 130, 246, 0.5);
+}
+
+/* Import the full theme */
+@import 'primevue/resources/themes/lara-light-blue/theme.css'; 

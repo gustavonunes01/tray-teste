@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Auth;
 
-use App\Repositories\Interfaces\AuthRepositoryInterface;
-use Illuminate\Support\Facades\Auth;
+use App\Repositories\Auth\Interfaces\AuthRepositoryInterface;
 
 class AuthRepository implements AuthRepositoryInterface
 {
@@ -31,4 +30,4 @@ class AuthRepository implements AuthRepositoryInterface
     {
         return auth('api')->factory()->getTTL();
     }
-} 
+}

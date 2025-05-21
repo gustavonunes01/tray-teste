@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Auth;
 
-use App\Repositories\Interfaces\AuthRepositoryInterface;
-use App\Services\Interfaces\AuthServiceInterface;
+use App\Repositories\Auth\Interfaces\AuthRepositoryInterface;
+use App\Services\Auth\Interfaces\AuthServiceInterface;
 use Illuminate\Http\JsonResponse;
 
 class AuthService implements AuthServiceInterface
@@ -50,4 +50,4 @@ class AuthService implements AuthServiceInterface
             'expires_in' => $this->authRepository->getTTL() * 60
         ]);
     }
-} 
+}

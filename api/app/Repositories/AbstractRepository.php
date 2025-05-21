@@ -36,10 +36,7 @@ abstract class AbstractRepository
         $orderBy = $params['order_by'] ?? '';
         $order = $params['order'] ?? 'asc';
         $page = $params['page'] ?? 1;
-        $per_page = $params['per_page'] ?? 20;
-
-        if($filter)
-            $filter = $this->model;
+        $per_page = $params['per_page'] ?? 50;
 
         if(strlen($orderBy) > 0)
             $filter->orderBy($orderBy, $order);

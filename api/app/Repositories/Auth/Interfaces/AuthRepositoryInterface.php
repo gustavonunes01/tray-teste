@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Interfaces;
+namespace App\Repositories\Auth\Interfaces;
 
 interface AuthRepositoryInterface
 {
@@ -9,4 +9,4 @@ interface AuthRepositoryInterface
     public function refresh();
     public function user();
     public function getTTL();
-} 
+}

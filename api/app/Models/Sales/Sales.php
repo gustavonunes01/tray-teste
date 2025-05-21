@@ -2,10 +2,14 @@
 
 namespace App\Models\Sales;
 
+use App\Models\Traits\UuidTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sales extends Model
 {
+    use SoftDeletes, UuidTrait;
+
     protected $table = 'sales';
     protected $fillable = [
         "external_id",
@@ -16,8 +20,8 @@ class Sales extends Model
     ];
 
     protected $casts = [
-        "price" => "decimal",
-        "commission_value" => "decimal",
+        "price" => "decimal:5",
+        "commission_value" => "decimal:5",
     ];
 
     public function seller(){

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->unsignedBigInteger('profile_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('profile_id')->references('id')->on('profile_types');
         });
